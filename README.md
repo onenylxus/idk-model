@@ -12,12 +12,6 @@ Make sure your computer has the following requirements:
 
 ## Setup
 
-Ensure that **Python 3** is installed beforehand:
-
-```sh
-python --version # v3.10 or later
-```
-
 Create a virtual envrionment `venv` and activate it:
 
 ```sh
