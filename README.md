@@ -47,11 +47,14 @@ pip install datasets
 pip install tokenizers
 pip install wandb
 pip install hf_xet
+
+# 🎨 Install termcolor
+pip install termcolor
 ```
 
 For **PyTorch**, check CUDA compatibility at [PyTorch's official site](https://pytorch.org/get-started/locally/).
 
-We will be using **Mistral-7B** (`mistralai/Mistral-7B-v0.1`) large language model as the base model, same as mentioned in the reference paper. Test the model with the script:
+Run the system diagnostics to see if your computer fulfills the requirements, then perform a test inference with **Mistral-7B** (`mistralai/Mistral-7B-v0.1`) base model:
 
 ```sh
 # Check with system diagnostics
