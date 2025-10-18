@@ -57,11 +57,7 @@ For **PyTorch**, check CUDA compatibility at [PyTorch's official site](https://p
 Run the system diagnostics to see if your computer fulfills the requirements, then perform a test inference with **Mistral-7B** (`mistralai/Mistral-7B-v0.1`) base model:
 
 ```sh
-# Check with system diagnostics
 python src/diagnostics.py
-
-# Run a simple inference test
-python src/test.py
 ```
 
 Finally, deactivate the virtual environment when finished to exit:

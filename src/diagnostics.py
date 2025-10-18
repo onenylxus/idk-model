@@ -1,4 +1,5 @@
 from cprint import print_info, print_warn
+from models import MistralBaseModel
 import platform
 import psutil
 import torch
@@ -39,3 +40,5 @@ def diagnostics() -> None:
 
 if __name__ == "__main__":
     diagnostics()
+    model = MistralBaseModel()
+    model.generate("Hello, my name is")

@@ -84,9 +84,25 @@ class Model:
             device_map=self.device_map
         )
 
+    def validate_model(self) -> bool:
+        """Validates that the model and tokenizer are loaded."""
+
+        if self.tokenizer is None:
+            print_fail("Tokenizer is not loaded.")
+            return False
+        if self.model is None:
+            print_fail("Model is not loaded.")
+            return False
+        return True
+
     def save_model(self):
         """Saves the tokenizer and model to the checkpoint directory."""
 
+        # Ensure model and tokenizer are loaded
+        if not self.validate_model():
+            raise ValueError("Model and tokenizer not found.")
+
+        # Save tokenizer and model
         print_info(f"Saving model to '{self.chpt_dir}'...")
         self.tokenizer.save_pretrained(self.chpt_dir)
         self.model.save_pretrained(self.chpt_dir)
@@ -116,7 +132,7 @@ class Model:
         """Generates text based on the given prompt."""
 
         # Ensure model and tokenizer are loaded
-        if self.tokenizer is None or self.model is None:
+        if not self.validate_model():
             raise ValueError("Model and tokenizer must be loaded before generation.")
 
         if display:
