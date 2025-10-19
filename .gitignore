@@ -217,3 +217,9 @@ __marimo__/
 
 # IDK-model: Checkpoint files
 checkpoints/
+
+# IDK-model: Dataset files
+datasets/
+
+# IDK-model: Temporary folder
+temp/

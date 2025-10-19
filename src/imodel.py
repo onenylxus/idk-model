@@ -9,13 +9,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Hyperparameters
 class Hyperparameters:
-    MAX_NEW_TOKENS: Final[int] = 50
-    TEMPERATURE: Final[float] = 0.7
-    TOP_K: Final[int] = 50
+    MAX_NEW_TOKENS: Final[int] = 8
+    TEMPERATURE: Final[float] = 0.1
+    TOP_K: Final[int] = 10
     TOP_P: Final[float] = 0.95
 
 # Base model class
-class Model:
+class IModel:
     def __init__(
         self,
         name: str,
@@ -166,7 +166,7 @@ class Model:
         return response
 
 # BERT base model (cased) class
-class BertBaseModel(Model):
+class BertBaseModel(IModel):
     def __init__(self):
         super().__init__(
             name="bert-base-cased-base",
@@ -174,7 +174,7 @@ class BertBaseModel(Model):
         )
 
 # Mistral-7B base model class
-class MistralBaseModel(Model):
+class MistralBaseModel(IModel):
     def __init__(self):
         super().__init__(
             name="mistral-7b-base",
@@ -182,7 +182,7 @@ class MistralBaseModel(Model):
         )
 
 # Pythia-70M base model class
-class PythiaSmallBaseModel(Model):
+class PythiaSmallBaseModel(IModel):
     def __init__(self):
         super().__init__(
             name="pythia-70m-base",
@@ -190,7 +190,7 @@ class PythiaSmallBaseModel(Model):
         )
 
 # Pythia-2.8B base model class
-class PythiaLargeBaseModel(Model):
+class PythiaLargeBaseModel(IModel):
     def __init__(self):
         super().__init__(
             name="pythia-2.8b-base",

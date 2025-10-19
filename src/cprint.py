@@ -23,9 +23,9 @@ def print_fail(message: str) -> None:
 def print_prompt(message: str) -> None:
     """Print a prompt message to the console."""
 
-    print(colored('[PROMPT]', 'cyan', None, ['bold']) + ' ' + colored(message, 'cyan'))
+    print('\n' + colored('PROMPT: ', 'cyan', None, ['bold']) + ' ' + colored(message, 'cyan'))
 
 def print_response(message: str) -> None:
     """Print a response message to the console."""
 
-    print(colored('[RESPONSE]', None, None, ['bold']) + ' ' + message)
+    print('\n' + colored('RESPONSE: ', None, None, ['bold']) + ' ' + message)

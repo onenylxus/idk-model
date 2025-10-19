@@ -46,10 +46,23 @@ pip install peft trl
 pip install datasets
 pip install tokenizers
 pip install wandb
+pip install tqdm
 pip install hf_xet
 
 # 🎨 Install termcolor
 pip install termcolor
+```
+
+Download and process **LAMA** datasets:
+
+```sh
+mkdir temp
+pushd temp
+wget https://dl.fbaipublicfiles.com/LAMA/data.zip
+unzip data.zip
+mv data lama
+rm data.zip
+popd
 ```
 
 For **PyTorch**, check CUDA compatibility at [PyTorch's official site](https://pytorch.org/get-started/locally/).

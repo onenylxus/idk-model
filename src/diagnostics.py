@@ -1,5 +1,5 @@
 from cprint import print_info, print_warn
-from models import MistralBaseModel
+from imodel import MistralBaseModel
 import platform
 import psutil
 import torch
@@ -13,9 +13,9 @@ def diagnostics() -> None:
     ram_total = int(round(psutil.virtual_memory().total / 1e6))
     ram_avail = int(round(psutil.virtual_memory().available / 1e6))
 
+    label_w = 16
     print_info("Running diagnostics...")
     print("\n" + "=" * 64)
-    label_w = 16
     print(f"{'OS:':<{label_w}} {platform.system()} {platform.release()}")
     print(f"{'Python:':<{label_w}} {python_version}")
     print(f"{'PyTorch:':<{label_w}} {torch.__version__}")
