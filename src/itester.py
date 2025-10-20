@@ -28,39 +28,46 @@ class ITester:
 
         print_info(f"Starting evaluation: model {self.model.name} on dataset {self.dataset.name}...")
 
-        correct_count = 0
+        tp_count = 0 # Correct predictions
+        fp_count = 0 # Incorrect non-[IDK] predictions
         total_count = 0
 
         for sample in tqdm(dataset, desc="{self.model.name} -> {self.dataset.name}"):
-            total_count += 1
             try:
-                is_correct = self.evaluate_impl(sample)
+                is_correct, is_confident = self.evaluate_impl(sample)
+                total_count += 1
                 if is_correct:
                     print_pass(f"Sample #{total_count} is correct.")
+                    tp_count += 1
                 else:
                     print_warn(f"Sample #{total_count} is incorrect.")
+                    if is_confident:
+                        fp_count += 1
             except Exception as e:
                 print_fail(f"Error evaluating sample #{total_count}: {e}")
                 is_correct = False
 
-            if is_correct:
-                correct_count += 1
-
-        accuracy = (correct_count / total_count) * 100 if total_count > 0 else 0.0
+        accuracy = (tp_count / total_count) * 100 if total_count > 0 else 0.0
+        precision = (tp_count / (tp_count + fp_count)) * 100 if (tp_count + fp_count) > 0 else 0.0
+        recall = (tp_count / total_count) * 100 if total_count > 0 else 0.0
+        f1_score = (2 * precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
         print_pass("Evaluation completed.")
 
         label_w = 16
         print("\n" + "=" * 64)
         print(f"{'Model:':<{label_w}} {self.model.name}")
         print(f"{'Dataset:':<{label_w}} {self.dataset.name}")
-        print(f"{'Count:':<{label_w}} {correct_count}/{total_count}")
+        print(f"{'Count:':<{label_w}} {tp_count}/{total_count}")
         print(f"{'Accuracy:':<{label_w}} {accuracy:.2f}%")
+        print(f"{'Precision (P):':<{label_w}} {precision:.2f}%")
+        print(f"{'Recall (R):':<{label_w}} {recall:.2f}%")
+        print(f"{'F1 Score (F1):':<{label_w}} {f1_score:.2f}%")
         print("=" * 64 + "\n")
 
-        return accuracy, correct_count, total_count
+        return accuracy, tp_count, total_count
 
-    def evaluate_impl(self, sample) -> bool:
-        """Implementation of the evaluation logic."""
+    def evaluate_impl(self, sample) -> tuple[bool, bool]:
+        """Implementation of the evaluation logic. The first boolean indicates if the prediction is correct, the second boolean indicates if the model was confident."""
 
         # Implementation depends of the specific dataset
         pass
@@ -71,7 +78,7 @@ class LamaTrexTester(ITester):
         dataset = LamaTrexDataset("test")
         super().__init__(model, dataset)
 
-    def evaluate_impl(self, sample) -> bool:
+    def evaluate_impl(self, sample) -> tuple[bool, bool]:
         # Prepare prompt
         prompt = sample["masked_sentence"].strip() + " Replace [MASK] with only one word:"
 
@@ -79,17 +86,16 @@ class LamaTrexTester(ITester):
         try:
             first_word = lambda s: re.search(r"[A-Za-z]+", s).group(0) if re.search(r"[A-Za-z]+", s) else s.strip().split()[0] if s.strip().split() else ""
 
-            prediction = self.model.generate(prompt)
-            model_answer = first_word(prediction)
-            correct_answer = first_word(sample["obj_surface"])
+            prediction = first_word(self.model.generate(prompt))
+            gold = first_word(sample["obj_label"])
 
             label_w = 16
             print("\n" + "=" * 64)
-            print(f"{'Model Answer:':<{label_w}} {model_answer}")
-            print(f"{'Correct Answer:':<{label_w}} {correct_answer}")
+            print(f"{'Model Prediction:':<{label_w}} {prediction}")
+            print(f"{'Correct Answer:':<{label_w}} {gold}")
             print("=" * 64 + "\n")
 
-            return model_answer.lower() == correct_answer.lower()
+            return prediction.lower() == gold.lower(), prediction.lower() != "[idk]"
         except Exception as e:
             print_fail(f"Error generating prediction for prompt '{prompt}': {e}")
             return False

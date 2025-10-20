@@ -7,13 +7,6 @@ import torch
 # Device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Hyperparameters
-class Hyperparameters:
-    MAX_NEW_TOKENS: Final[int] = 8
-    TEMPERATURE: Final[float] = 0.1
-    TOP_K: Final[int] = 10
-    TOP_P: Final[float] = 0.95
-
 # Base model class
 class IModel:
     def __init__(
@@ -142,28 +135,62 @@ class IModel:
         inputs = self.tokenizer(
             prompt,
             return_tensors="pt",
-            truncation=True,
-            max_length=512
+            padding=True,
+            truncation=True
         ).to(device)
 
         # Generate output
         outputs = self.model.generate(
             **inputs,
-            max_new_tokens=Hyperparameters.MAX_NEW_TOKENS,
-            temperature=Hyperparameters.TEMPERATURE,
-            top_k=Hyperparameters.TOP_K,
-            top_p=Hyperparameters.TOP_P,
             pad_token_id=self.tokenizer.eos_token_id,
             eos_token_id=self.tokenizer.eos_token_id,
-            repetition_penalty=1.1,
-            do_sample=True
+            do_sample=False,
+            num_beams=1
         )
         prompt_response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         response = prompt_response[len(prompt):].strip()
+        response = response.split()[0] if response else ""
 
         if display:
             print_response(response)
         return response
+
+    def predict(self, prompt: str, display: bool = True) -> str:
+        """Generates a prediction based on the given prompt."""
+
+        # Ensure model and tokenizer are loaded
+        if not self.validate_model():
+            raise ValueError("Model and tokenizer must be loaded before generation.")
+
+        # Validate tokenizer has mask token
+        if self.tokenizer.mask_token_id is None:
+            raise ValueError("Tokenizer does not have a [MASK] token. Use generate() instead.")
+
+        if display:
+            print_prompt(prompt)
+
+        # Tokenize input prompt
+        inputs = self.tokenizer(
+            prompt,
+            return_tensors="pt",
+            padding=True,
+            truncation=True
+        ).to(device)
+        mask_token_index = torch.where(inputs["input_ids"] == self.tokenizer.mask_token_id)[1]
+
+        # Generate output
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+            logits = outputs.logits
+
+        # Extract the prediction for the [MASK] token
+        mask_token_logits = logits[0, mask_token_index, :]
+        top_token_id = mask_token_logits.argmax(dim=-1, keepdim=True)
+        prediction = self.tokenizer.decode(top_token_id)[0]
+
+        if display:
+            print_response(prediction)
+        return prediction
 
 # BERT base model (cased) class
 class BertBaseModel(IModel):
