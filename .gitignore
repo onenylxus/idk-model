@@ -216,10 +216,13 @@ __marimo__/
 .streamlit/secrets.toml
 
 # IDK-model: Checkpoint files
-checkpoints/
+checkpoints/*
+!checkpoints/.gitkeep
 
 # IDK-model: Dataset files
-datasets/
+datasets/*
+!datasets/.gitkeep
 
 # IDK-model: Temporary folder
-temp/
+temp/*
+!temp/.gitkeep
