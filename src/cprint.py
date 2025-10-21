@@ -29,3 +29,8 @@ def print_response(message: str) -> None:
     """Print a response message to the console."""
 
     print('\n' + colored('RESPONSE: ', None, None, ['bold']) + ' ' + message)
+
+def print_answer(message: str) -> None:
+    """Print an answer message to the console."""
+
+    print('\n' + colored('ANSWER: ', 'magenta', None, ['bold']) + ' ' + colored(message, 'magenta'))

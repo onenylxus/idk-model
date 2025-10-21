@@ -105,27 +105,7 @@ class LamaDataset(IDataset):
                     raw_data.append(json.loads(line.strip()))
 
         # Process raw data into final format
-        for obj in raw_data:
-            # Build base entry
-            entry = {}
-            for k, v in obj.items():
-                if k == "evidences":
-                    continue
-                entry[k] = v
-
-            # Join data with relation
-            for relation in relations:
-                if relation["relation"] == obj["predicate_id"]:
-                    for k, v in relation.items():
-                        if k == "relation":
-                            continue
-                        entry[k] = v
-                    break
-
-            for evidence in obj["evidences"]:
-                sample = entry.copy()
-                sample.update(evidence)
-                data.append(sample)
+        data = self.process_raw_data(raw_data)
 
         # Validate data
         if len(data) == 0:
@@ -133,6 +113,11 @@ class LamaDataset(IDataset):
 
         # Convert to Hugging Face dataset
         self.dataset = Dataset.from_list(data)
+
+    def process_raw_data(self, raw_data) -> list[dict]:
+        """Processes raw data into final format."""
+
+        pass
 
 
 # LAMA (Google-RE) dataset class
@@ -144,6 +129,15 @@ class LamaGoogleReDataset(LamaDataset):
 class LamaTrexDataset(LamaDataset):
     def __init__(self, split: str = "train"):
         super().__init__(config="trex", temp_folder="TREx", split=split)
+
+    def process_raw_data(self, raw_data) -> list[dict]:
+        # Only consider data with masked sentences ending with "[MASK]"
+        return [
+            {"prompt": evidence["masked_sentence"][:-7], "answer": evidence["obj_surface"]}
+            for data in raw_data
+            for evidence in data["evidences"]
+            if evidence["masked_sentence"].endswith("[MASK].")
+        ]
 
 # LAMA (Squad) dataset class
 class LamaSquadDataset(LamaDataset):

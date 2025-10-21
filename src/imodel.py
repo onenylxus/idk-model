@@ -142,14 +142,12 @@ class IModel:
         # Generate output
         outputs = self.model.generate(
             **inputs,
+            max_new_tokens=30,
+            num_beams=1,
             pad_token_id=self.tokenizer.eos_token_id,
-            eos_token_id=self.tokenizer.eos_token_id,
-            do_sample=False,
-            num_beams=1
         )
         prompt_response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
         response = prompt_response[len(prompt):].strip()
-        response = response.split()[0] if response else ""
 
         if display:
             print_response(response)
