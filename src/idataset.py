@@ -74,6 +74,15 @@ class IDataset:
 
         return random.sample(self.dataset, min(count, len(self.dataset)))
 
+# Wikipedia dataset class
+class WikipediaDataset(IDataset):
+    def __init__(self, split = "train"):
+        super().__init__(name="wikipedia", dataset_name="wikimedia/wikipedia", split=split)
+
+    def download_data(self):
+        print_info(f"Downloading dataset '{self.dataset_name}'...")
+        self.dataset = load_dataset(self.dataset_name, '20231101.en', split=self.split)
+
 # LAMA dataset base class
 class LamaDataset(IDataset):
     def __init__(self, config, temp_folder, split = "train"):
@@ -95,13 +104,6 @@ class LamaDataset(IDataset):
 
     def download_data(self):
         print_info(f"Downloading dataset '{self.dataset_name}' with config {self.config}...")
-
-        # Collect relations from JSONL file
-        relations = []
-        with open(self.temp_dir / ".." / "relations.jsonl", 'r', encoding='utf-8') as f:
-            for line in f:
-                obj = json.loads(line.strip())
-                relations.append(obj)
 
         jsonl_files = glob.glob(str(self.temp_dir / "*.jsonl"))
         raw_data = []
@@ -128,7 +130,6 @@ class LamaDataset(IDataset):
 
         pass
 
-
 # LAMA (Google-RE) dataset class
 class LamaGoogleReDataset(LamaDataset):
     def __init__(self, split: str = "train"):
@@ -137,9 +138,9 @@ class LamaGoogleReDataset(LamaDataset):
     def process_raw_data(self, raw_data):
         # Only consider data with masked sentences ending with "[MASK]"
         return [
-            {"prompt": data["masked_sentences"][0][:-7], "answer": data["obj_label"]}
+            {"prompt": data["masked_sentences"][0][:-8], "answer": data["obj_label"]}
             for data in raw_data
-            if data["masked_sentences"][0].endswith("[MASK].")
+            if data["masked_sentences"][0].endswith("[MASK] .")
         ]
 
 # LAMA (TREx) dataset class
@@ -169,34 +170,46 @@ class LamaSquadDataset(LamaDataset):
 
 # TriviaQA dataset class
 class TriviaQaDataset(IDataset):
-    def __init__(self, split = "train"):
+    def __init__(self, split = "validation"):
         super().__init__(name="trivia_qa", dataset_name="mandarjoshi/trivia_qa", split=split)
 
     def download_data(self):
         print_info(f"Downloading dataset '{self.dataset_name}'...")
         raw_data = load_dataset(self.dataset_name, 'rc', split=self.split)
 
-        self.dataset = [
+        dataset = [
             {
                 "prompt": "Please answer the following question: " + data["question"],
                 "answer": list(set([data["answer"]["value"]] + data["answer"]["aliases"]))
             }
             for data in raw_data
         ]
+        self.dataset = Dataset.from_list(dataset)
 
 # PopQA dataset class
 class PopQaDataset(IDataset):
-    def __init__(self, split = "train"):
+    def __init__(self, split = "test"):
         super().__init__(name="pop_qa", dataset_name="akariasai/PopQA", split=split)
 
     def download_data(self):
         print_info(f"Downloading dataset '{self.dataset_name}'...")
         raw_data = load_dataset(self.dataset_name, split=self.split)
 
-        self.dataset = [
+        dataset = [
             {
                 "prompt": "Please answer the following question: " + data["question"],
                 "answer": data["possible_answers"].strip("][").split(", ")
             }
             for data in raw_data
         ]
+        self.dataset = Dataset.from_list(dataset)
+
+if __name__ == "__main__":
+    datasets = [
+        WikipediaDataset(),
+        LamaGoogleReDataset(),
+        LamaTrexDataset(),
+        LamaSquadDataset(),
+        TriviaQaDataset(),
+        PopQaDataset()
+    ]

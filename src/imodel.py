@@ -220,3 +220,11 @@ class PythiaLargeBaseModel(IModel):
             name="pythia-2.8b-base",
             pretrained_model="EleutherAI/pythia-2.8b"
         )
+
+if __name__ == "__main__":
+    models = [
+        BertBaseModel(),
+        MistralBaseModel(),
+        PythiaSmallBaseModel(),
+        PythiaLargeBaseModel()
+    ]
