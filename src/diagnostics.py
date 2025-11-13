@@ -4,7 +4,7 @@ import platform
 import psutil
 import torch
 
-def diagnostics() -> None:
+def diagnostics():
     """Print system diagnostics information."""
 
     python_version = platform.python_version()

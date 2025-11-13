@@ -1,7 +1,6 @@
 from cprint import print_fail, print_info, print_pass, print_prompt, print_response
 from pathlib import Path
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from typing import Any, Final, Literal
 import torch
 
 # Device
@@ -11,9 +10,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class IModel:
     def __init__(
         self,
-        name: str,
-        pretrained_model: str,
-        dtype: Any = torch.bfloat16
+        name,
+        pretrained_model,
+        dtype = torch.bfloat16
     ):
         self.name = name
         self.pretrained_model = pretrained_model
@@ -33,7 +32,7 @@ class IModel:
         print_pass(f"Model '{self.name}' with device type {device} is ready.")
 
     @property
-    def chpt_dir(self) -> Path:
+    def chpt_dir(self):
         """Returns the checkpoint directory path."""
 
         base_dir = Path(__file__).parent.parent
@@ -43,7 +42,7 @@ class IModel:
 
     # Device map
     @property
-    def device_map(self) -> Literal["auto"] | None:
+    def device_map(self):
         """Returns the device map based on availability of CUDA."""
 
         return "auto" if device.type == "cuda" else None
@@ -77,7 +76,7 @@ class IModel:
             device_map=self.device_map
         )
 
-    def validate_model(self) -> bool:
+    def validate_model(self):
         """Validates that the model and tokenizer are loaded."""
 
         if self.tokenizer is None:
@@ -121,7 +120,7 @@ class IModel:
             device_map=self.device_map
         )
 
-    def generate(self, prompt: str, display: bool = True) -> str:
+    def generate(self, prompt, display = True):
         """Generates text based on the given prompt."""
 
         # Ensure model and tokenizer are loaded
@@ -153,7 +152,7 @@ class IModel:
             print_response(response)
         return response
 
-    def predict(self, prompt: str, display: bool = True) -> str:
+    def predict(self, prompt, display = True):
         """Generates a prediction based on the given prompt."""
 
         # Ensure model and tokenizer are loaded

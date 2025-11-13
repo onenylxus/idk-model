@@ -3,10 +3,11 @@ from datasets import Dataset, load_dataset, load_from_disk
 from pathlib import Path
 import glob
 import json
+import random
 
 # Dataset class
 class IDataset:
-    def __init__(self, name: str, dataset_name: str, split: str = "train"):
+    def __init__(self, name, dataset_name, split = "train"):
         self.name = name
         self.dataset_name = dataset_name
         self.split = split
@@ -24,7 +25,7 @@ class IDataset:
         print_pass(f"Dataset '{self.name}' is ready.")
 
     @property
-    def data_dir(self) -> Path:
+    def data_dir(self):
         """Returns the dataset directory path."""
 
         base_dir = Path(__file__).parent.parent
@@ -65,9 +66,17 @@ class IDataset:
         # Load dataset
         self.dataset = load_from_disk(self.data_dir)
 
+    def sample(self, count):
+        """Returns a batch of samples from the dataset."""
+
+        if not self.validate_data():
+            raise ValueError("Dataset not found.")
+
+        return random.sample(self.dataset, min(count, len(self.dataset)))
+
 # LAMA dataset base class
 class LamaDataset(IDataset):
-    def __init__(self, config: str, temp_folder: str, split: str = "train"):
+    def __init__(self, config, temp_folder, split = "train"):
         self.config = config
         self.temp_folder = temp_folder
         super().__init__(name=f"lama_{config}", dataset_name="facebook/lama", split=split)
@@ -77,7 +86,7 @@ class LamaDataset(IDataset):
             raise ValueError(f"Temporary directory '{self.temp_dir}' does not exist or is empty. ")
 
     @property
-    def temp_dir(self) -> Path:
+    def temp_dir(self):
         """Returns the temporary directory path where the dataset holds."""
 
         base_dir = Path(__file__).parent.parent
@@ -114,7 +123,7 @@ class LamaDataset(IDataset):
         # Convert to Hugging Face dataset
         self.dataset = Dataset.from_list(data)
 
-    def process_raw_data(self, raw_data) -> list[dict]:
+    def process_raw_data(self, raw_data):
         """Processes raw data into final format."""
 
         pass
@@ -125,12 +134,20 @@ class LamaGoogleReDataset(LamaDataset):
     def __init__(self, split: str = "train"):
         super().__init__(config="google_re", temp_folder="Google_RE", split=split)
 
+    def process_raw_data(self, raw_data):
+        # Only consider data with masked sentences ending with "[MASK]"
+        return [
+            {"prompt": data["masked_sentences"][0][:-7], "answer": data["obj_label"]}
+            for data in raw_data
+            if data["masked_sentences"][0].endswith("[MASK].")
+        ]
+
 # LAMA (TREx) dataset class
 class LamaTrexDataset(LamaDataset):
     def __init__(self, split: str = "train"):
         super().__init__(config="trex", temp_folder="TREx", split=split)
 
-    def process_raw_data(self, raw_data) -> list[dict]:
+    def process_raw_data(self, raw_data):
         # Only consider data with masked sentences ending with "[MASK]"
         return [
             {"prompt": evidence["masked_sentence"][:-7], "answer": evidence["obj_surface"]}
@@ -141,19 +158,45 @@ class LamaTrexDataset(LamaDataset):
 
 # LAMA (Squad) dataset class
 class LamaSquadDataset(LamaDataset):
-    def __init__(self, split: str = "train"):
+    def __init__(self, split = "train"):
         super().__init__(config="squad", temp_folder="Squad", split=split)
+
+    def process_raw_data(self, raw_data):
+        return [
+            {"prompt": data["masked_sentences"][0], "answer": data["obj_label"]}
+            for data in raw_data
+        ]
 
 # TriviaQA dataset class
 class TriviaQaDataset(IDataset):
-    def __init__(self, split: str = "train"):
+    def __init__(self, split = "train"):
         super().__init__(name="trivia_qa", dataset_name="mandarjoshi/trivia_qa", split=split)
 
     def download_data(self):
         print_info(f"Downloading dataset '{self.dataset_name}'...")
-        self.dataset = load_dataset(self.dataset_name, 'rc', split=self.split)
+        raw_data = load_dataset(self.dataset_name, 'rc', split=self.split)
+
+        self.dataset = [
+            {
+                "prompt": "Please answer the following question: " + data["question"],
+                "answer": list(set([data["answer"]["value"]] + data["answer"]["aliases"]))
+            }
+            for data in raw_data
+        ]
 
 # PopQA dataset class
 class PopQaDataset(IDataset):
-    def __init__(self, split: str = "train"):
+    def __init__(self, split = "train"):
         super().__init__(name="pop_qa", dataset_name="akariasai/PopQA", split=split)
+
+    def download_data(self):
+        print_info(f"Downloading dataset '{self.dataset_name}'...")
+        raw_data = load_dataset(self.dataset_name, split=self.split)
+
+        self.dataset = [
+            {
+                "prompt": "Please answer the following question: " + data["question"],
+                "answer": data["possible_answers"].strip("][").split(", ")
+            }
+            for data in raw_data
+        ]
