@@ -7,7 +7,7 @@ import random
 
 # Dataset class
 class IDataset:
-    def __init__(self, name, dataset_name, split = "train"):
+    def __init__(self, name, dataset_name, split="train"):
         self.name = name
         self.dataset_name = dataset_name
         self.split = split
@@ -39,7 +39,7 @@ class IDataset:
         print_info(f"Downloading dataset '{self.dataset_name}'...")
         self.dataset = load_dataset(self.dataset_name, split=self.split)
 
-    def validate_data(self) -> bool:
+    def validate_data(self):
         """Validates that the dataset is loaded."""
 
         if self.dataset is None:
@@ -76,7 +76,7 @@ class IDataset:
 
 # Wikipedia dataset class
 class WikipediaDataset(IDataset):
-    def __init__(self, split = "train"):
+    def __init__(self, split="train"):
         super().__init__(name="wikipedia", dataset_name="wikimedia/wikipedia", split=split)
 
     def download_data(self):
@@ -85,7 +85,7 @@ class WikipediaDataset(IDataset):
 
 # LAMA dataset base class
 class LamaDataset(IDataset):
-    def __init__(self, config, temp_folder, split = "train"):
+    def __init__(self, config, temp_folder, split="train"):
         self.config = config
         self.temp_folder = temp_folder
         super().__init__(name=f"lama_{config}", dataset_name="facebook/lama", split=split)
@@ -132,7 +132,7 @@ class LamaDataset(IDataset):
 
 # LAMA (Google-RE) dataset class
 class LamaGoogleReDataset(LamaDataset):
-    def __init__(self, split: str = "train"):
+    def __init__(self, split: str="train"):
         super().__init__(config="google_re", temp_folder="Google_RE", split=split)
 
     def process_raw_data(self, raw_data):
@@ -145,7 +145,7 @@ class LamaGoogleReDataset(LamaDataset):
 
 # LAMA (TREx) dataset class
 class LamaTrexDataset(LamaDataset):
-    def __init__(self, split: str = "train"):
+    def __init__(self, split: str="train"):
         super().__init__(config="trex", temp_folder="TREx", split=split)
 
     def process_raw_data(self, raw_data):
@@ -159,7 +159,7 @@ class LamaTrexDataset(LamaDataset):
 
 # LAMA (Squad) dataset class
 class LamaSquadDataset(LamaDataset):
-    def __init__(self, split = "train"):
+    def __init__(self, split="train"):
         super().__init__(config="squad", temp_folder="Squad", split=split)
 
     def process_raw_data(self, raw_data):
@@ -170,7 +170,7 @@ class LamaSquadDataset(LamaDataset):
 
 # TriviaQA dataset class
 class TriviaQaDataset(IDataset):
-    def __init__(self, split = "validation"):
+    def __init__(self, split="validation"):
         super().__init__(name="trivia_qa", dataset_name="mandarjoshi/trivia_qa", split=split)
 
     def download_data(self):
@@ -188,7 +188,7 @@ class TriviaQaDataset(IDataset):
 
 # PopQA dataset class
 class PopQaDataset(IDataset):
-    def __init__(self, split = "test"):
+    def __init__(self, split="test"):
         super().__init__(name="pop_qa", dataset_name="akariasai/PopQA", split=split)
 
     def download_data(self):

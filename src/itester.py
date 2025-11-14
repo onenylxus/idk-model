@@ -1,9 +1,12 @@
 from cprint import print_answer, print_fail, print_info, print_pass, print_warn
 from idataset import LamaGoogleReDataset, LamaTrexDataset, LamaSquadDataset, PopQaDataset, TriviaQaDataset
-from imodel import IModel, BertBaseModel, MistralBaseModel, PythiaSmallBaseModel, PythiaLargeBaseModel
+from imodel import MistralBaseModel
 from tqdm import tqdm
 from utils import is_correct_prediction
 import random
+import wandb
+
+wandb.init(project="idk-model")
 
 # Tester class
 class ITester:
@@ -11,7 +14,7 @@ class ITester:
         self.model = model
         self.dataset = dataset
 
-    def evaluate(self, max_samples: int=None) -> tuple[float, int, int]:
+    def evaluate(self, max_samples=None):
         """Evaluates the model on the dataset."""
 
         # Ensure model and dataset are loaded
@@ -87,31 +90,31 @@ class ITester:
 
 # LAMA (Google-RE) dataset tester class
 class LamaGoogleReTester(ITester):
-    def __init__(self, model: IModel):
+    def __init__(self, model):
         dataset = LamaGoogleReDataset("test")
         super().__init__(model, dataset)
 
 # LAMA (TREx) dataset tester class
 class LamaTrexTester(ITester):
-    def __init__(self, model: IModel):
+    def __init__(self, model):
         dataset = LamaTrexDataset("test")
         super().__init__(model, dataset)
 
 # LAMA (Squad) dataset tester class
 class LamaSquadTester(ITester):
-    def __init__(self, model: IModel):
+    def __init__(self, model):
         dataset = LamaSquadDataset("test")
         super().__init__(model, dataset)
 
 # TriviaQA dataset tester class
 class TriviaQaTester(ITester):
-    def __init__(self, model: IModel):
+    def __init__(self, model):
         dataset = TriviaQaDataset("validation")
         super().__init__(model, dataset)
 
 # PopQA dataset tester class
 class PopQaTester(ITester):
-    def __init__(self, model: IModel):
+    def __init__(self, model):
         dataset = PopQaDataset("validation")
         super().__init__(model, dataset)
 
