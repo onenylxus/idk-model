@@ -226,3 +226,6 @@ datasets/*
 # IDK-model: Temporary folder
 temp/*
 !temp/.gitkeep
+
+# IDK-model: W&B files
+wandb/*

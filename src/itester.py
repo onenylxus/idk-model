@@ -1,17 +1,20 @@
 from cprint import print_answer, print_fail, print_info, print_pass, print_warn
-from idataset import IDataset, LamaTrexDataset
-from imodel import IModel, BertBaseModel, MistralBaseModel, PythiaSmallBaseModel, PythiaLargeBaseModel
+from idataset import LamaGoogleReDataset, LamaTrexDataset, LamaSquadDataset, PopQaDataset, TriviaQaDataset
+from imodel import MistralBaseModel
 from tqdm import tqdm
 from utils import is_correct_prediction
 import random
+import wandb
+
+wandb.init(project="idk-model")
 
 # Tester class
 class ITester:
-    def __init__(self, model: IModel, dataset: IDataset):
+    def __init__(self, model, dataset):
         self.model = model
         self.dataset = dataset
 
-    def evaluate(self, max_samples: int=None) -> tuple[float, int, int]:
+    def evaluate(self, max_samples=None):
         """Evaluates the model on the dataset."""
 
         # Ensure model and dataset are loaded
@@ -70,19 +73,9 @@ class ITester:
 
         return accuracy, tp_count, total_count
 
-    def evaluate_impl(self, sample) -> tuple[bool, bool]:
+    def evaluate_impl(self, sample):
         """Implementation of the evaluation logic. The first boolean indicates if the prediction is correct, the second boolean indicates if the model was confident."""
 
-        # Implementation depends of the specific dataset
-        pass
-
-# LAMA (TREx) dataset tester class
-class LamaTrexTester(ITester):
-    def __init__(self, model: IModel):
-        dataset = LamaTrexDataset("test")
-        super().__init__(model, dataset)
-
-    def evaluate_impl(self, sample) -> tuple[bool, bool]:
         prompt = sample["prompt"]
         gold = sample["answer"]
 
@@ -95,6 +88,36 @@ class LamaTrexTester(ITester):
             print_fail(f"Error generating prediction for prompt '{prompt}': {e}")
             return False
 
+# LAMA (Google-RE) dataset tester class
+class LamaGoogleReTester(ITester):
+    def __init__(self, model):
+        dataset = LamaGoogleReDataset("test")
+        super().__init__(model, dataset)
+
+# LAMA (TREx) dataset tester class
+class LamaTrexTester(ITester):
+    def __init__(self, model):
+        dataset = LamaTrexDataset("test")
+        super().__init__(model, dataset)
+
+# LAMA (Squad) dataset tester class
+class LamaSquadTester(ITester):
+    def __init__(self, model):
+        dataset = LamaSquadDataset("test")
+        super().__init__(model, dataset)
+
+# TriviaQA dataset tester class
+class TriviaQaTester(ITester):
+    def __init__(self, model):
+        dataset = TriviaQaDataset("validation")
+        super().__init__(model, dataset)
+
+# PopQA dataset tester class
+class PopQaTester(ITester):
+    def __init__(self, model):
+        dataset = PopQaDataset("validation")
+        super().__init__(model, dataset)
+
 if __name__ == "__main__":
     models = [
         # BertBaseModel(),
@@ -103,9 +126,15 @@ if __name__ == "__main__":
         # PythiaLargeBaseModel()
     ]
 
-    testers = [
-        LamaTrexTester(model) for model in models
-    ]
+    testers = []
+    for model in models:
+        testers.extend([
+            LamaGoogleReTester(model),
+            LamaTrexTester(model),
+            LamaSquadTester(model),
+            TriviaQaTester(model),
+            PopQaTester(model),
+        ])
 
     for tester in testers:
         tester.evaluate(max_samples=10000)
