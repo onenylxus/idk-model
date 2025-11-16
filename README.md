@@ -6,7 +6,10 @@ Reproduction of large language model (LLM) with `[IDK]` token from **I Don’t K
 
 Make sure your computer has the following requirements:
 
-- \>15GB disk space
+- \>40GB disk space
+  - ~15GB for Mistral-7B model
+  - ~12GB for Wikipedia dataset, and ~5GB for testing datasets
+  - ~8GB for checkpoints of base and trained models
 - \>8GB physical memory (RAM)
 - Python v3.10 or later
 
@@ -73,12 +76,28 @@ Run the system diagnostics to see if your computer fulfills the requirements, th
 python src/diagnostics.py
 ```
 
+Basic training and testing can be done by running other Python files:
+
+```sh
+# Train
+python src/itrainer.py
+
+# Test
+python src/itester.py
+```
+
 Finally, deactivate the virtual environment when finished to exit:
 
 ```sh
 deactivate
 ```
 
+## Remarks
+
+For detailed demonstration, using the repository referenced in the research paper produces more accurate results. However, some libraries and dataset sources are outdated and the reference repository is not actively maintained.
+
 ## References
 
 Cohen, R., Dobler, K., Biran, E., & de Melo, G. (2024). **I Don’t Know: Explicit Modeling of Uncertainty with an [IDK] Token.** Advances in Neural Information Processing Systems 37 (NeurIPS 2024). https://papers.nips.cc/paper_files/paper/2024/file/14c018d2e72c521605b0567029ef0efb-Paper-Conference.pdf
+
+Cohen, R.. **roi-hpi/IDK-token-tuning.** GitHub. https://github.com/roi-hpi/IDK-token-tuning
