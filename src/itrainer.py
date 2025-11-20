@@ -13,7 +13,7 @@ class ITrainer(Trainer):
         super().__init__(*args, **kwargs)
 
         self.is_training_idk = kwargs.get('is_training_idk', True)
-        self.idk_weight_max = kwargs.get('idk_weight_max', 0.2)
+        self.idk_weight_max = kwargs.get('idk_weight_max', 0.5)
         self.idk_weight_schedule = kwargs.get('idk_weight_schedule', 'constant') # 'constant' | 'increasing' | 'decreasing' | 'adaptive'
         self.num_expected_steps = kwargs.get('num_expected_steps', 100000)
         self.correct_prediction_regularization = kwargs.get('correct_prediction_regularization', False)
@@ -71,9 +71,9 @@ class ITrainer(Trainer):
         # Apply regular cross entropy for correct predictions
         one_hot_correct_predictions = one_hot_labels[correct_predictions]
         if self.correct_prediction_regularization:
-            loss_correct = self.ce_loss_reg(masked_correct_logits, one_hot_correct_predictions)
+            loss_correct = self.cross_entropy_loss_regularized(masked_correct_logits, one_hot_correct_predictions)
         else:
-            loss_correct = self.ce_loss(masked_correct_logits, one_hot_correct_predictions)
+            loss_correct = self.cross_entropy_loss(masked_correct_logits, one_hot_correct_predictions)
 
         # Apply IDK loss for incorrect predictions
         one_hot_incorrect_predictions = one_hot_labels[~correct_predictions]
@@ -88,7 +88,7 @@ class ITrainer(Trainer):
 
             one_hot_incorrect_labels = one_hot_incorrect_predictions * (1 - idk_weights.unsqueeze(-1))
             one_hot_incorrect_labels[:, self.idk_token_index] = idk_weights
-            loss_incorrect = self.ce_loss(masked_incorrect_logits, one_hot_incorrect_labels)
+            loss_incorrect = self.cross_entropy_loss(masked_incorrect_logits, one_hot_incorrect_labels)
 
             # Detach idk_weight for logging
             idk_weight = idk_weights.mean().detach().cpu().numpy()
@@ -96,7 +96,7 @@ class ITrainer(Trainer):
             idk_weight = self.idk_weight_current
             one_hot_incorrect_labels = one_hot_incorrect_predictions * (1 - idk_weight)
             one_hot_incorrect_labels[:, self.idk_token_index] = idk_weight
-            loss_incorrect = self.ce_loss(masked_incorrect_logits, one_hot_incorrect_labels)
+            loss_incorrect = self.cross_entropy_loss(masked_incorrect_logits, one_hot_incorrect_labels)
 
         # Combine losses and log
         if masked_correct_logits.shape[0] == 0:
@@ -109,13 +109,13 @@ class ITrainer(Trainer):
         wandb.log({"idk_weight": idk_weight}, step=self.state.global_step)
         return (loss, outputs) if return_outputs else loss
 
-    def ce_loss(self, logits, targets):
+    def cross_entropy_loss(self, logits, targets):
             """Compute cross-entropy loss."""
 
             lsm = nn.functional.log_softmax(logits, dim=-1)
             return -torch.sum(lsm * targets, dim=-1)
 
-    def ce_loss_reg(self, logits, targets):
+    def cross_entropy_loss_regularized(self, logits, targets):
             """Compute cross-entropy loss with extra binary cross-entropy loss."""
 
             sm = nn.functional.softmax(logits, dim=-1)

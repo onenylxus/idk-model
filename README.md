@@ -56,7 +56,9 @@ pip install hf_xet
 pip install termcolor
 ```
 
-Download and process **LAMA** datasets:
+For **PyTorch**, check CUDA compatibility at [PyTorch's official site](https://pytorch.org/get-started/locally/).
+
+**LAMA** datasets cannot be downloaded directly using HuggingFace, so we manually download the zipped source folder into a temporary directory:
 
 ```sh
 mkdir temp
@@ -67,8 +69,6 @@ mv data lama
 rm data.zip
 popd
 ```
-
-For **PyTorch**, check CUDA compatibility at [PyTorch's official site](https://pytorch.org/get-started/locally/).
 
 Run the system diagnostics to see if your computer fulfills the requirements, then perform a test inference with **Mistral-7B** (`mistralai/Mistral-7B-v0.1`) base model:
 
